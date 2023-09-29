@@ -9,13 +9,12 @@ module.exports = {
     ecmaVersion: 6,
     sourceType: "module",
     ecmaFeatures: {
-      jsx: true,
+      jsx: false,
     },
   },
   plugins: ["react"],
   extends: [
-    "eslint:recommended",
-    "plugin:react/recommended",
-    "plugin:prettier/recommended",
+  
+   
   ],
 };

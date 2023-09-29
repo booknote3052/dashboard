@@ -1,102 +1,56 @@
+import { GoogleMap, Marker, useLoadScript } from "@react-google-maps/api";
+import { useMemo } from "react";
 import React from "react";
+import "../../assets/css/App.css";
 
-const Maps = () => {
-  const mapRef = React.useRef(null);
+const Maps = () =>   {
+  const [allcase, setAllcase] = React.useState();
+  const center = useMemo(() => ({ lat: 13.7884586, lng: 100.6083957}), []);
   React.useEffect(() => {
-    let google = window.google;
-    let map = mapRef.current;
-    let lat = "40.748817";
-    let lng = "-73.985428";
-    const myLatlng = new google.maps.LatLng(lat, lng);
-    const mapOptions = {
-      zoom: 12,
-      center: myLatlng,
-      scrollwheel: false,
-      zoomControl: true,
-      styles: [
-        {
-          featureType: "water",
-          stylers: [{ saturation: 43 }, { lightness: -11 }, { hue: "#0088ff" }],
-        },
-        {
-          featureType: "road",
-          elementType: "geometry.fill",
-          stylers: [
-            { hue: "#ff0000" },
-            { saturation: -100 },
-            { lightness: 99 },
-          ],
-        },
-        {
-          featureType: "road",
-          elementType: "geometry.stroke",
-          stylers: [{ color: "#808080" }, { lightness: 54 }],
-        },
-        {
-          featureType: "landscape.man_made",
-          elementType: "geometry.fill",
-          stylers: [{ color: "#ece2d9" }],
-        },
-        {
-          featureType: "poi.park",
-          elementType: "geometry.fill",
-          stylers: [{ color: "#ccdca1" }],
-        },
-        {
-          featureType: "road",
-          elementType: "labels.text.fill",
-          stylers: [{ color: "#767676" }],
-        },
-        {
-          featureType: "road",
-          elementType: "labels.text.stroke",
-          stylers: [{ color: "#ffffff" }],
-        },
-        { featureType: "poi", stylers: [{ visibility: "off" }] },
-        {
-          featureType: "landscape.natural",
-          elementType: "geometry.fill",
-          stylers: [{ visibility: "on" }, { color: "#b8cb93" }],
-        },
-        { featureType: "poi.park", stylers: [{ visibility: "on" }] },
-        {
-          featureType: "poi.sports_complex",
-          stylers: [{ visibility: "on" }],
-        },
-        { featureType: "poi.medical", stylers: [{ visibility: "on" }] },
-        {
-          featureType: "poi.business",
-          stylers: [{ visibility: "simplified" }],
-        },
-      ],
-    };
+    async function getJSON() {
+      let arr = [];
+      const response = await fetch("http://localhost:3333/getmap", {
+        method: "GET", // or 'PUT'
+      });
 
-    map = new google.maps.Map(map, mapOptions);
-
-    const marker = new google.maps.Marker({
-      position: myLatlng,
-      map: map,
-      animation: google.maps.Animation.DROP,
-      title: "Material Dashboard React!",
-    });
-
-    const contentString =
-      '<div class="info-window-content"><h2>Material Dashboard React</h2>' +
-      "<p>A premium Admin for React, Material-UI, and React Hooks.</p></div>";
-
-    const infowindow = new google.maps.InfoWindow({
-      content: contentString,
-    });
-
-    google.maps.event.addListener(marker, "click", function () {
-      infowindow.open(map, marker);
-    });
+      const sum = await response.json();
+      for(let i=0;i<sum.length;i++ ){
+        const obj = {lat :parseFloat(sum[i].lat),lng :parseFloat(sum[i].lng)};
+     
+        arr.push(obj);
+      }
+      setAllcase(arr);
+    }
+    getJSON();
+  }, []);
+ 
+  const { isLoaded } = useLoadScript({
+    googleMapsApiKey:"AIzaSyBJNF1WF1PZ072rIlzasimj-wEVnaCu2WY",
   });
+ 
+
+  const onLoad = (map) => {
+   
+    const bounds = new google.maps.LatLngBounds();
+    allcase?.forEach(({ lat, lng }) => bounds.extend({ lat, lng }));
+    map.fitBounds(bounds);
+  };
+
   return (
-    <>
-      <div style={{ height: `100vh` }} ref={mapRef}></div>
-    </>
+    <div className="Maps">
+      {!isLoaded ? (
+        <h1>Loading...</h1>
+      ) : (
+        <GoogleMap mapContainerClassName="map-container" center={center} zoom={10}>
+          {allcase?.map(({ lat, lng }) => (
+            <Marker position={{ lat, lng }} />
+          ))}
+          
+        </GoogleMap>
+      )}
+    </div>
   );
 };
-
 export default Maps;
+
+
